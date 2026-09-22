@@ -1,0 +1,66 @@
+import pandas as pd #type:ignore
+import numpy as np #type:ignore
+
+df = pd.read_csv("dirty_customer_dataset.csv")
+print(df)
+
+print(df.shape)
+print(df.head())
+print(df.tail())
+
+print(df.duplicated())
+print(df.duplicated())
+
+df["Full_name"] = df["First_Name"] + " " + df["Last_Name"]
+print(df)
+
+df["Full_name"] = df["Full_name"].str.title()
+print(df)
+
+df = df[df['Email'].str.lower().str.endswith('@example.com', na=False)]
+print(df["Email"])
+
+df["Age"] = df["Age"].dropna()
+print(df)
+
+df.dropna(subset="Full_name",inplace=True)
+print(df)
+
+df["Join_Date"] = pd.to_datetime(df["Join_Date"], errors="coerce")
+print(df["Join_Date"])
+df.dropna(subset="Join_Date", inplace=True)
+print(df["Join_Date"])
+
+
+print(df.dtypes)
+df["Annual_Income"] = pd.to_numeric(df["Annual_Income"],errors="coerce").astype("Int64")
+print(df.dtypes)
+
+
+median_price = df["Annual_Income"].median()
+df["Annual_Income"] = df["Annual_Income"].fillna(median_price)
+print(df["Annual_Income"])
+
+df["Customer_Segment"] = (df["Customer_Segment"]
+                          .str.strip()
+                          .str.upper()
+                          .str.replace(".", "", regex=False)
+                           .replace({"STANDRD":"STANDARD"})
+                          )
+print(df["Customer_Segment"])
+
+print(df.dtypes)
+
+df["Recent_Purchase_USD"] = pd.to_numeric(df["Recent_Purchase_USD"],errors="coerce")
+
+df.loc[df["Recent_Purchase_USD"] <= 0, "Recent_Purchase_USD"] = np.nan
+df["Recent_Purchase_USD"] = df["Recent_Purchase_USD"].fillna(
+    df.groupby("Customer_Segment")["Recent_Purchase_USD"].transform("median")
+)
+print(df["Recent_Purchase_USD"])
+
+
+df = df(df.reset_index(),drop=True)
+print(df)
+
+print(df.to_csv("clean_customer_dataset"))
